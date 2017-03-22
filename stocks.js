@@ -1,12 +1,13 @@
 const { get, createServer } = require('http');
 const { readFile } = require('fs');
 const [,,...args] = process.argv;
+const url = `http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters={"Normalized":false,"NumberOfDays":365,"DataPeriod":"Day","Elements":[{"Symbol":"${args[0]}","Type":"price","Params":["c"]}]}`
 
 
-get(`http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=${args[0]}`, res => {
+get(url, res => {
 	const statusCode = res.statusCode;
     const contentType = res.headers['content-type'];
-
+    // console.log(res)
 
     let error;
     if (statusCode !== 200) {
@@ -23,10 +24,15 @@ get(`http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=${args[0]}`,
     }
     let body = '';
 	  res.on('data', (buff) => {
-	    console.log("status?", statusCode);
 	    body += buff.toString()
 	  });
 	  res.on('end', () => {
-	    console.log(JSON.parse(body));
+	    const data = JSON.parse(body);
+	    let quoteArray = data.Elements[0].DataSeries.close.values
+	    let sum = quoteArray.reduce((a, b) => {
+	    	return a + b
+	    })
+	    console.log((sum / quoteArray.length).toFixed(2))
 	  });
+
 })
